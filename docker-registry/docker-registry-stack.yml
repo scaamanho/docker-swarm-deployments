@@ -1,0 +1,101 @@
+
+version: "3.2"
+services:
+  private-registry:
+    image: registry:2
+    environment:
+        REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
+        REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    volumes:
+        - registry:/var/lib/registry
+    ports:
+        - 5000:5000
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: 
+        - "registry.registry.app=registry2"
+        - "registry.registry.description=private registry"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 200M
+        reservations:
+          cpus: '0.01'
+          memory: 5M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  regirsty-browser:
+    image: klausmeyer/docker-registry-browser
+    environment:
+      DOCKER_REGISTRY_URL: "http://privateregistry:5000"
+      ENABLE_DELETE_IMAGES: "true"
+#      NO_SSL_VERIFICATION: false
+#      BASIC_AUTH_USER: joe
+#      BASIC_AUTH_PASSWORD: supersecretpassw0rd
+#      ENABLE_DELETE_IMAGES: True
+      PUBLIC_REGISTRY_URL: "192.168.99.106:5000"
+      PORT: 8080
+#     SSL_PORT: 8443
+#     SSL_CERT_PATH: /ssl/cert.pem
+#     SSL_KEY_PATH: /ssl/key.pem
+    ports:
+      - "11080:8080"
+    depends_on:
+      - privateregistry
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: 
+        - "registry.broswe.app=registry.browser"
+        - "registry.registry.description=private registry browser"
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 100M
+        reservations:
+          cpus: '0.01'
+          memory: 5M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      
+  registry-frontend:
+    image: konradkleine/docker-registry-frontend:v2
+    restart: always
+    environment:
+      ENV_DOCKER_REGISTRY_HOST: 'privateregistry'
+      ENV_DOCKER_REGISTRY_PORT: 5000
+    depends_on:
+      - privateregistry
+    ports:
+      - "11081:80"
+    expose:
+      - 80
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: 
+        - "registry.broswe.app=registry.frontend"
+        - "registry.registry.description=private registry browser"
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 100M
+        reservations:
+          cpus: '0.01'
+          memory: 5M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+volumes:
+    registry:
