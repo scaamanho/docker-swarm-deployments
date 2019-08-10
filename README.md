@@ -3,5 +3,5 @@ Docker Swarm Stack Collections
 
 * [ ] Portainer
 * [x] Postgres 11 + PgAdmin4
-* [ ] Registry + Registry Browswer + Registry UI
-* [ ] Nexus 3
+* [x] Registry + Registry Browswer + Registry UI
+* [x] Nexus 3

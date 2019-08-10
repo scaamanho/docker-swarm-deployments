@@ -1,0 +1,35 @@
+
+version: "3.2"
+services:
+  nexus3:
+    image: sonatype/docker-nexus3
+    environment:
+        JAVA_MAX_MEM: 750m
+        JAVA_MIN_MEM: 512m
+#        EXTRA_JAVA_OPTS: ""
+    volumes:
+        - nexus-data:/nexus-data
+    ports:
+        - 8081:8081
+        # The Docker registry API 
+        - 8123:8123
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: 
+        - "registry.nexus.app=nexus3"
+        - "registry.registry.description=private nexus repository"
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 750M
+        reservations:
+          cpus: '0.2'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+volumes:
+    nexus-data:
