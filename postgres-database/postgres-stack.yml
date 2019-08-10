@@ -1,0 +1,65 @@
+version: "3"
+services:
+  db:
+    image: "postgres:11"
+    environment:
+        POSTGRES_DB: ${POSTGRES_DB:postgres}
+        POSTGRES_USER: ${POSTGRES_USER:postgres}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: 
+        - "postgres.db.app=postgres11"
+        - "postgres.db.description=relational database"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 200M
+        reservations:
+          cpus: '0.01'
+          memory: 10M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+        
+  pgadmin4:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:admin@mail.es}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:admin}
+    ports:
+      - "16543:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    deploy:
+      #modes: replicated (default)/global
+      mode: replicated
+      replicas: 1
+      labels: 
+        - "postgres.pgadmin.app=pgadmin"
+        - "postgres.pgadmin.description=postgres client"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 150M
+        reservations:
+          cpus: '0.01'
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      
+volumes:
+  postgres_data:
+  pgadmin_data:
